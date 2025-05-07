@@ -76,8 +76,17 @@
   <div class="navigation" id="navigation"></div>
   <div id="quiz-container"></div>
   <script>
-const allQuestions = [
-  {
+    
+    function shuffleArray(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1)); 
+        [arr[i], arr[j]] = [arr[j], arr[i]]; 
+      }
+    }
+
+    
+    const allQuestions = [
+      {
     question: "Gross Tonnage (GT), ни дава представа за",
     options: [
       "вида на кораба.",
@@ -3051,17 +3060,14 @@ const allQuestions = [
 ];
 
     
-    shuffleArray(allQuestions);
-
-    
+   shuffleArray(allQuestions);
     allQuestions.forEach(q => shuffleArray(q.options));
 
-    
-    const selectedQuestions = allQuestions; 
-
+    const selectedQuestions = allQuestions;
     let currentIndex = 0;
     let userAnswers = Array(selectedQuestions.length).fill(null);
 
+    
     function renderNavigation() {
       const navDiv = document.getElementById("navigation");
       navDiv.innerHTML = "";
@@ -3077,6 +3083,7 @@ const allQuestions = [
       }
     }
 
+    
     function renderQuestion() {
       renderNavigation();
       const q = selectedQuestions[currentIndex];
@@ -3122,6 +3129,7 @@ const allQuestions = [
       container.appendChild(box);
     }
 
+    
     function renderAnswerFeedback(selectedAnswer, button) {
       const q = selectedQuestions[currentIndex];
       if (selectedAnswer === q.options[q.correct]) {
@@ -3131,6 +3139,7 @@ const allQuestions = [
       }
     }
 
+    
     function calculateResults() {
       let correctCount = 0;
       userAnswers.forEach((answer, index) => {
@@ -3138,10 +3147,4 @@ const allQuestions = [
           correctCount++;
         }
       });
-      alert("Тестът е завършен! Резултати: " + correctCount + " правилни от " + selectedQuestions.length);
-    }
-
-    renderQuestion();
-  </script>
-</body>
-</html>
+      alert
