@@ -2,11 +2,11 @@
 <html lang="bg">
 <head>
   <meta charset="UTF-8">
-  <title>товарно дело ф2 тест/title>
+  <title>товарно дело тест</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: url('https://images.unsplash.com/photo-1519750157634-b6d493a0f77b?auto=format&fit=crop&w=1950&q=80') no-repeat center center fixed;
+      background: url('https://images.unsplash.com/photo-1604032549343-5c232d9d219d?auto=format&fit=crop&w=1950&q=80') no-repeat center center fixed;
       background-size: cover;
       padding: 20px;
       max-width: 960px;
@@ -106,7 +106,7 @@
   </style>
 </head>
 <body>
-  <h1>товарно дело ф2 тест</h1>
+  <h1>товарно дело тест</h1>
   <div class="scoreboard" id="scoreboard">Верен: 0 | Грешен: 0</div>
   <div class="navigation-wrapper">
     <div class="navigation" id="navigation"></div>
@@ -114,14 +114,15 @@
   <div id="quiz-container"></div>
 
   <script>
-    function shuffleArray(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+    function shuffleArray(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1)); 
+        [arr[i], arr[j]] = [arr[j], arr[i]]; 
       }
     }
 
     const allQuestions = [
+
 
       {
     question: "Gross Tonnage (GT), ни дава представа за",
@@ -3095,8 +3096,13 @@
     correct: 3
   },
 ];
+    ];
     shuffleArray(allQuestions);
-    allQuestions.forEach(q => shuffleArray(q.options));
+    allQuestions.forEach(q => {
+      const correctText = q.options[q.correct];
+      shuffleArray(q.options);
+      q.correct = q.options.indexOf(correctText);
+    });
 
     const selectedQuestions = allQuestions;
     let currentIndex = 0;
@@ -3109,14 +3115,13 @@
         const btn = document.createElement("button");
         btn.textContent = i + 1;
         btn.className = "nav-button";
+
         if (i === currentIndex) btn.classList.add("active");
         if (userAnswers[i] !== null) {
-          if (userAnswers[i] === selectedQuestions[i].correct) {
-            btn.classList.add("correct");
-          } else {
-            btn.classList.add("incorrect");
-          }
+          const isCorrect = userAnswers[i] === selectedQuestions[i].options[selectedQuestions[i].correct];
+          btn.classList.add(isCorrect ? "correct" : "incorrect");
         }
+
         btn.onclick = () => {
           currentIndex = i;
           renderQuestion();
@@ -3127,7 +3132,6 @@
 
     function renderQuestion() {
       renderNavigation();
-      updateScoreboard();
       const q = selectedQuestions[currentIndex];
       const container = document.getElementById("quiz-container");
       container.innerHTML = "";
@@ -3140,28 +3144,35 @@
       qText.textContent = (currentIndex + 1) + ". " + q.question;
       box.appendChild(qText);
 
+      const options = [...q.options];
       const labels = ['A', 'B', 'C', 'D'];
 
-      q.options.forEach((opt, index) => {
+      options.forEach((opt, index) => {
         const btn = document.createElement("button");
         btn.textContent = `${labels[index]}. ${opt}`;
         btn.className = "option";
+
         if (userAnswers[currentIndex] !== null) {
           btn.classList.add("disabled");
-          if (opt === q.correct) btn.classList.add("correct");
-          else if (opt === userAnswers[currentIndex]) btn.classList.add("incorrect");
+          if (opt === q.options[q.correct]) {
+            btn.classList.add("correct");
+          } else if (opt === userAnswers[currentIndex]) {
+            btn.classList.add("incorrect");
+          }
+        } else {
+          btn.onclick = () => {
+            userAnswers[currentIndex] = opt;
+            renderQuestion();
+            updateScoreboard();
+          };
         }
-        btn.onclick = () => {
-          if (userAnswers[currentIndex] !== null) return;
-          userAnswers[currentIndex] = opt;
-          renderQuestion();
-        };
+
         box.appendChild(btn);
       });
 
       const nextButton = document.createElement("button");
       nextButton.className = "next-button";
-      nextButton.textContent = currentIndex === selectedQuestions.length - 1 ? "Край" : "Следващ въпрос";
+      nextButton.textContent = currentIndex === selectedQuestions.length - 1 ? "Завърши теста" : "Следващ въпрос";
       nextButton.onclick = () => {
         if (currentIndex === selectedQuestions.length - 1) {
           calculateResults();
@@ -3171,21 +3182,31 @@
         }
       };
       box.appendChild(nextButton);
+
       container.appendChild(box);
     }
 
     function updateScoreboard() {
+      const scoreboard = document.getElementById("scoreboard");
       let correct = 0, incorrect = 0;
-      userAnswers.forEach((ans, i) => {
-        if (ans === selectedQuestions[i].correct) correct++;
-        else if (ans !== null) incorrect++;
+      userAnswers.forEach((ans, idx) => {
+        if (ans !== null) {
+          const correctAns = selectedQuestions[idx].options[selectedQuestions[idx].correct];
+          if (ans === correctAns) correct++;
+          else incorrect++;
+        }
       });
-      document.getElementById("scoreboard").textContent = `Верен: ${correct} | Грешен: ${incorrect}`;
+      scoreboard.textContent = `Верен: ${correct} | Грешен: ${incorrect}`;
     }
 
     function calculateResults() {
-      updateScoreboard();
-      alert("Тестът е завършен!");
+      let correctCount = 0;
+      userAnswers.forEach((answer, index) => {
+        if (answer === selectedQuestions[index].options[selectedQuestions[index].correct]) {
+          correctCount++;
+        }
+      });
+      alert("Вие отговорихте правилно на " + correctCount + " от " + selectedQuestions.length + " въпроса.");
     }
 
     renderQuestion();
