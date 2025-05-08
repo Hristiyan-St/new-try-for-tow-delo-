@@ -2,45 +2,54 @@
 <html lang="bg">
 <head>
   <meta charset="UTF-8">
-  <title>товарно дело тест</title>
+  <title>товарно дело ф2 тест/title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #f4f4f4;
+      background: url('https://images.unsplash.com/photo-1519750157634-b6d493a0f77b?auto=format&fit=crop&w=1950&q=80') no-repeat center center fixed;
+      background-size: cover;
       padding: 20px;
-      max-width: 900px;
+      max-width: 960px;
       margin: auto;
+      color: #333;
     }
     .question-box {
-      background: #fff;
+      background: rgba(255, 255, 255, 0.95);
       padding: 20px;
       margin-bottom: 20px;
       border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
     .question-text {
-      font-size: 18px;
+      font-size: 20px;
       font-weight: bold;
-      margin-bottom: 10px;
+      margin-bottom: 15px;
     }
     .option {
       display: block;
       margin: 6px 0;
-      padding: 10px;
+      padding: 12px;
       background: #eee;
       border: none;
       border-radius: 8px;
       cursor: pointer;
       text-align: left;
+      font-size: 16px;
+      transition: background 0.3s;
     }
     .option.correct {
-      background-color: #d4edda;
-      color: #155724;
+      background-color: #28a745 !important;
+      color: white;
       font-weight: bold;
     }
     .option.incorrect {
-      background-color: #f8d7da;
-      color: #721c24;
+      background-color: #dc3545 !important;
+      color: white;
+      font-weight: bold;
+    }
+    .option.disabled {
+      pointer-events: none;
+      opacity: 0.6;
     }
     .next-button {
       margin-top: 15px;
@@ -52,38 +61,68 @@
       border-radius: 8px;
       cursor: pointer;
     }
-    .navigation {
+    .navigation-wrapper {
+      max-height: 120px;
+      overflow-x: auto;
+      overflow-y: hidden;
       margin-bottom: 30px;
+      padding-bottom: 10px;
+    }
+    .navigation {
+      display: flex;
+      gap: 5px;
+      flex-wrap: nowrap;
     }
     .nav-button {
-      margin-right: 5px;
-      margin-bottom: 5px;
-      padding: 5px 10px;
+      padding: 8px 12px;
       font-size: 14px;
       cursor: pointer;
       border-radius: 6px;
       border: 1px solid #ccc;
       background-color: #f1f1f1;
+      transition: background 0.3s, color 0.3s;
+      flex: 0 0 auto;
     }
     .nav-button.active {
       background-color: #007bff;
       color: white;
     }
+    .nav-button.correct {
+      background-color: #28a745;
+      color: white;
+    }
+    .nav-button.incorrect {
+      background-color: #dc3545;
+      color: white;
+    }
+    .scoreboard {
+      font-size: 18px;
+      margin-bottom: 15px;
+      background: rgba(255, 255, 255, 0.85);
+      padding: 10px 15px;
+      border-radius: 10px;
+      display: inline-block;
+    }
   </style>
 </head>
 <body>
-  <h1>товарно дело тест</h1>
-  <div class="navigation" id="navigation"></div>
+  <h1>товарно дело ф2 тест</h1>
+  <div class="scoreboard" id="scoreboard">Верен: 0 | Грешен: 0</div>
+  <div class="navigation-wrapper">
+    <div class="navigation" id="navigation"></div>
+  </div>
   <div id="quiz-container"></div>
+
   <script>
-    function shuffleArray(arr) {
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1)); 
-        [arr[i], arr[j]] = [arr[j], arr[i]]; 
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
       }
     }
 
     const allQuestions = [
+
       {
     question: "Gross Tonnage (GT), ни дава представа за",
     options: [
@@ -3056,13 +3095,8 @@
     correct: 3
   },
 ];
-shuffleArray(allQuestions);
-
-    allQuestions.forEach(q => {
-      const correctText = q.options[q.correct];
-      shuffleArray(q.options);
-      q.correct = q.options.indexOf(correctText);
-    });
+    shuffleArray(allQuestions);
+    allQuestions.forEach(q => shuffleArray(q.options));
 
     const selectedQuestions = allQuestions;
     let currentIndex = 0;
@@ -3074,7 +3108,15 @@ shuffleArray(allQuestions);
       for (let i = 0; i < selectedQuestions.length; i++) {
         const btn = document.createElement("button");
         btn.textContent = i + 1;
-        btn.className = "nav-button" + (i === currentIndex ? " active" : "");
+        btn.className = "nav-button";
+        if (i === currentIndex) btn.classList.add("active");
+        if (userAnswers[i] !== null) {
+          if (userAnswers[i] === selectedQuestions[i].correct) {
+            btn.classList.add("correct");
+          } else {
+            btn.classList.add("incorrect");
+          }
+        }
         btn.onclick = () => {
           currentIndex = i;
           renderQuestion();
@@ -3085,6 +3127,7 @@ shuffleArray(allQuestions);
 
     function renderQuestion() {
       renderNavigation();
+      updateScoreboard();
       const q = selectedQuestions[currentIndex];
       const container = document.getElementById("quiz-container");
       container.innerHTML = "";
@@ -3097,24 +3140,28 @@ shuffleArray(allQuestions);
       qText.textContent = (currentIndex + 1) + ". " + q.question;
       box.appendChild(qText);
 
-      const options = [...q.options];
       const labels = ['A', 'B', 'C', 'D'];
 
-      options.forEach((opt, index) => {
+      q.options.forEach((opt, index) => {
         const btn = document.createElement("button");
         btn.textContent = `${labels[index]}. ${opt}`;
         btn.className = "option";
-        
+        if (userAnswers[currentIndex] !== null) {
+          btn.classList.add("disabled");
+          if (opt === q.correct) btn.classList.add("correct");
+          else if (opt === userAnswers[currentIndex]) btn.classList.add("incorrect");
+        }
         btn.onclick = () => {
+          if (userAnswers[currentIndex] !== null) return;
           userAnswers[currentIndex] = opt;
-          renderAnswerFeedback(opt, btn);
+          renderQuestion();
         };
         box.appendChild(btn);
       });
 
       const nextButton = document.createElement("button");
       nextButton.className = "next-button";
-      nextButton.textContent = "Следващ въпрос";
+      nextButton.textContent = currentIndex === selectedQuestions.length - 1 ? "Край" : "Следващ въпрос";
       nextButton.onclick = () => {
         if (currentIndex === selectedQuestions.length - 1) {
           calculateResults();
@@ -3124,30 +3171,25 @@ shuffleArray(allQuestions);
         }
       };
       box.appendChild(nextButton);
-
       container.appendChild(box);
     }
 
-    function renderAnswerFeedback(selectedAnswer, button) {
-      const q = selectedQuestions[currentIndex];
-      if (selectedAnswer === q.options[q.correct]) {
-        button.classList.add("correct");
-      } else {
-        button.classList.add("incorrect");
-      }
+    function updateScoreboard() {
+      let correct = 0, incorrect = 0;
+      userAnswers.forEach((ans, i) => {
+        if (ans === selectedQuestions[i].correct) correct++;
+        else if (ans !== null) incorrect++;
+      });
+      document.getElementById("scoreboard").textContent = `Верен: ${correct} | Грешен: ${incorrect}`;
     }
 
     function calculateResults() {
-      let correctCount = 0;
-      userAnswers.forEach((answer, index) => {
-        if (answer === selectedQuestions[index].options[selectedQuestions[index].correct]) {
-          correctCount++;
-        }
-      });
-      alert("Вие отговорихте правилно на " + correctCount + " от " + selectedQuestions.length + " въпроса.");
+      updateScoreboard();
+      alert("Тестът е завършен!");
     }
 
     renderQuestion();
   </script>
 </body>
 </html>
+
